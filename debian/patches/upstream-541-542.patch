@@ -1,0 +1,27 @@
+Author: Clint Byrum <clint@ubuntu.com>
+Bug: http://pad.lv/1007657
+Description: Fixes local provider to work with proposed origin
+Origin: lp:juju, bzr diff -r 540..542
+
+=== modified file 'juju/lib/lxc/data/juju-create'
+--- old/juju/lib/lxc/data/juju-create	2012-05-29 15:23:08 +0000
++++ new/juju/lib/lxc/data/juju-create	2012-06-18 19:04:58 +0000
+@@ -85,6 +85,8 @@
+ 
+     if [ $JUJU_ORIGIN = "ppa" ]; then
+         echo "Using juju PPA for container"
++    elif [ $JUJU_ORIGIN = "proposed" ]; then
++        echo "Using juju distribution packages from proposed updates"
+     elif [[ $JUJU_ORIGIN = lp:* ]]; then
+         echo "Using juju branch" $JUJU_ORIGIN
+     elif [ $JUJU_ORIGIN = "distro" ]; then
+@@ -104,7 +106,7 @@
+         echo y | apt-add-repository ppa:juju/pkgs
+         apt-get update
+         apt-get install $APT_OPTIONS juju python-txzookeeper
+-    elif [ $JUJU_ORIGIN = "proposed"]; then
++    elif [ $JUJU_ORIGIN = "proposed" ]; then
+ 	# Enabled testing of proposed updates
+ 	echo "deb http://archive.ubuntu.com/ubuntu/ $JUJU_SERIES-proposed main universe" >> /etc/apt/sources.list
+         apt-get update
+

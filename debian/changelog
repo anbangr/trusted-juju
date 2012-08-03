@@ -1,0 +1,141 @@
+juju (0.5+bzr531-0ubuntu1.2) precise-proposed; urgency=low
+
+  * d/p/upstream-541-542.patch: fix shell script to make proposed work
+    for local provider. (LP: #1007657)
+
+ -- Clint Byrum <clint@ubuntu.com>  Mon, 18 Jun 2012 14:00:56 -0700
+
+juju (0.5+bzr531-0ubuntu1.1) precise-proposed; urgency=low
+
+  * d/p/upstream-532.patch: use proper whitespace separation in
+    relation-ids. (LP: #988065)
+  * d/p/upstream-533.patch: workaround to suppress Zookeeper logging
+    which goes out of control in local provider on Reboot.(LP: #958312)
+  * d/p/upstream-534.patch: fix to stop juju-log and relation-set commands
+    outputting "{}" to stdout, which can break some programs and makes it
+    difficult to use them in a debug-hooks session. (LP: #915506)
+  * d/p/upstream-537.patch: make HTTPS apt sources usable inside local
+    provider. (LP: #993034)
+  * d/p/upstream-538.patch: Add support to install juju from proposed
+    pocket to test proposed SRU's. (LP: #926550)
+
+ -- Clint Byrum <clint@ubuntu.com>  Tue, 29 May 2012 22:56:16 -0700
+
+juju (0.5+bzr531-0ubuntu1) precise; urgency=low
+
+  * New upstream snapshot (LP: #985249)
+  * d/p/fix-tests-without-aws-key.patch: Dropped as it has been
+    superseded by a better upstream fix (LP: #819329)
+  * d/p/no-write-sample-on-help.patch: Dropped, Applied upstream.
+  * d/p/disable-failing-zookeeper-test.patch refreshed.
+  * d/control: new code requires latest txzookeeper upstream.
+
+ -- Clint Byrum <clint@ubuntu.com>  Wed, 18 Apr 2012 15:45:34 -0700
+
+juju (0.5+bzr504-0ubuntu1) precise; urgency=low
+
+  * New upstream snapshot (LP: #962507 LP: #953258 LP: #965507).
+  * d/control: Depend and Build-Depend on python-oauth for MaaS.
+  * d/control: Drop dummy ensemble package and make breaks/replaces
+    broader to force removal of any ensemble package. (LP: #954492)
+  * d/control: Move lxc, libvirt-bin, and zookeeper to Suggests to
+    reduce the amount of packages installed on every node unecessarily
+    and also avoid conflicting when deploying into a libvirt-bin
+    default network VM (LP: #962389)
+  * d/rules: skip test suite when nocheck is set.
+  * d/rules: remove redundant dh_clean call
+  * d/juju.install: remove usr, with only one binary package this is
+    not necessary anymore and causes dh_install to fail because no
+    files are installed to debian/tmp anymore.
+  * d/rules,d/control,d/manpages,d/juju.manpages: Generate basic
+    manpage from online help. (LP: #966611)
+  * d/patches/no-write-sample-on-help.patch: Added so --help can be
+    safely run without a writable home dir on buildds. (LP: #957682)
+
+ -- Clint Byrum <clint@ubuntu.com>  Fri, 30 Mar 2012 15:28:16 -0700
+
+juju (0.5+bzr457-0ubuntu1) precise; urgency=low
+
+  * New upstream snapshot.
+
+ -- Clint Byrum <clint@ubuntu.com>  Thu, 16 Feb 2012 03:44:02 -0800
+
+juju (0.5+bzr447-0ubuntu1) precise; urgency=low
+
+  * d/control: Recommend components necessary for local provider except
+    apt-cacher-ng, which is suggested. (LP: #873540) Also depend on tmux
+    for debug-hooks and recommend byobu so the branding will be the same.
+  * d/control: removing inaccurate Vcs-Bzr.
+  * New upstream snapshot.
+    - Fixed regression with twisted 11.1 (LP: #917954)
+
+ -- Clint Byrum <clint@ubuntu.com>  Mon, 23 Jan 2012 10:16:55 -0800
+
+juju (0.5+bzr424-0ubuntu1) precise; urgency=low
+
+  * New upstream snapshot.
+  * d/control: No longer build-dep or depend on python-argparse, as
+    it seems to cause fits with pkg_resources.
+
+ -- Clint Byrum <clint@ubuntu.com>  Thu, 01 Dec 2011 13:15:51 -0800
+
+juju (0.5+bzr398-0ubuntu1) oneiric; urgency=low
+
+  * New upstream snapshot.
+  * refreshed patches
+
+ -- Clint Byrum <clint@ubuntu.com>  Sun, 09 Oct 2011 09:50:34 -0700
+
+juju (0.5+bzr361-0ubuntu1) oneiric; urgency=low
+
+  * New upstream snapshot. Note upstream rename of project from ensemble
+    to juju. Rename upload exception granted by slangasek on IRC.
+  * d/p/fix-failing-bundle-test.patch,fix-tests-with-no-ssh-key.patch:
+    dropped, merged upstream.
+  * d/p/fix-tests-without-aws-access-key-id: refreshed for rename.
+  * d/control: change ensemble to meta-package which depends on juju
+    so users who have ensemble will have it replaced with juju.
+  * d/rules: pull source from lp:juju
+  * debian/ensemble: install warning binary for transition.
+  * d/p/disable-failing-zookeeper-test.patch: Disable test due to race
+    condition in the test (not underlying code), as confirmed upstream.
+
+ -- Clint Byrum <clint@ubuntu.com>  Wed, 28 Sep 2011 09:42:32 -0700
+
+ensemble (0.5+bzr336-0ubuntu1) oneiric; urgency=low
+
+  * New upstream snapshot.
+  * d/patches/fix-*: Patches to fix failing tests.
+  * d/rules: fail to build if tests fail. Remove test-results.txt
+    from package (not as interesting now that they MUST pass).
+    (LP: #801020)
+  * d/control: Depend on openssh-client. (LP: #835154)
+
+ -- Clint Byrum <clint@ubuntu.com>  Tue, 06 Sep 2011 11:30:15 -0700
+
+ensemble (0.5+bzr306-0ubuntu1) oneiric; urgency=low
+
+  * New upstream snapshot.
+
+ -- Clint Byrum <clint@ubuntu.com>  Wed, 10 Aug 2011 11:59:13 -0500
+
+ensemble (0.5+bzr283-0ubuntu1) oneiric; urgency=low
+
+  * New upstream snapshot.
+  * d/control: add build-depends to run test suite
+  * d/rules: run test suite but do not fail on it yet
+
+ -- Clint Byrum <clint@ubuntu.com>  Tue, 26 Jul 2011 17:03:36 -0700
+
+ensemble (0.5+bzr274-0ubuntu1) oneiric; urgency=low
+
+  * New upstream snapshot
+  * Removing leading article from synopsis to quiet lintian warning.
+
+ -- Clint Byrum <clint@ubuntu.com>  Tue, 12 Jul 2011 16:53:48 -0700
+
+ensemble (0.5+bzr251-0ubuntu1) oneiric; urgency=low
+
+  * Initial Packaging
+
+ -- Clint Byrum <clint@ubuntu.com>  Sun, 12 Jun 2011 20:59:45 -0700

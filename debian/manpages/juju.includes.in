@@ -1,0 +1,7 @@
+[SEE ALSO]
+Each sub command has online help available by passing --help after the subcommand.
+.PP
+Online documentation is available at http://juju.ubuntu.com/docs
+[COPYRIGHT]
+Copyright Canonical Ltd. 2012 All Rights Reserved.
+This is free software;see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

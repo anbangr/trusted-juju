@@ -1,0 +1,2 @@
+misc/bash_completion.d/juju /etc/bash_completion.d/
+debian/ensemble.sh /usr/bin

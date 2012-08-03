@@ -1,0 +1,11 @@
+description "pew pew pew blam"
+author "Juju Team <juju@lists.ubuntu.com>"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+respawn
+
+env FOO="bar baz qux"
+env PEW="pew"
+
+exec /bin/deathstar --ignore-ewoks endor >> /somewhere/else 2>&1

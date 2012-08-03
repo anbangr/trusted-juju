@@ -1,0 +1,19 @@
+Origin: https://code.launchpad.net/~hazmat/juju/zk-log-client-disable/+merge/103753
+Author: kapil.thangavelu@canonical.com
+Bug: http://pad.lv/958312
+Description:
+  [merge][trivial] minimize zk logging, workaround local provider problems
+  with restart, ie. filling disks [r=jimbaker][f=958312]
+
+=== modified file 'juju/agents/base.py'
+--- old/juju/agents/base.py	2012-04-12 18:07:40 +0000
++++ new/juju/agents/base.py	2012-04-26 18:32:14 +0000
+@@ -78,6 +78,7 @@
+ 
+         # Also capture zookeeper logs (XXX not compatible with rotation)
+         zookeeper.set_log_stream(log_file)
++        zookeeper.set_debug_level(0)
+ 
+         # Configure logging.
+         root = logging.getLogger()
+

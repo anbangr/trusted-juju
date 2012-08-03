@@ -1,0 +1,63 @@
+#!/bin/bash -x
+
+# Gather a collection of data into an output file to make
+# debugging any possible issues with the local provider simpler
+
+if [ ! `id -u` == '0' ]; then
+	echo "This script should be run as root"
+	exit 1;
+fi
+
+if [ ${#} = 1 ]; then
+    image_name=$1
+fi
+
+# 11.10 (Oneiric) is the first supported release for the local provider due
+# to its improved LXC support
+source /etc/lsb-release
+major_release=`echo $DISTRIB_RELEASE | cut -d . -f 1`
+minor_release=`echo $DISTRIB_RELEASE | cut -d . -f 2`
+
+if [ $major_release -lt 11 -o  $minor_release -lt 10 ]; then
+    echo "Oneiric 11.10 is the first supported release of the local provider"
+    exit 1;
+fi
+
+
+# Collect various status information about the system
+echo "#Local provider inspection"
+uname -a
+
+ifconfig
+virsh net-list --all
+
+ls /var/cache/lxc
+ls /var/cache/lxc/*
+
+lxc-ls
+
+# guess about the users data-dir
+if [ -n "${SUDO_USER}" ]; then
+    user=$SUDO_USER
+fi
+
+
+image=/var/lib/lxc/$image_name
+if [ -n "$image_name" -a -e "$image" ]; then
+    cat "$image/config"
+    chroot "$image/rootfs" bash -xc "
+        cat /etc/juju/juju.conf;
+        ls /usr/lib/juju/juju;
+        dpkg-query -s juju;
+        cat /etc/hostname;
+        cat /etc/resolv.conf;
+        cat /etc/hosts;
+        tail -n 100 /var/log/juju/*.log
+    "
+fi
+
+
+
+
+
+

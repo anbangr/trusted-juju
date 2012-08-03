@@ -1,0 +1,63 @@
+Origin: https://code.launchpad.net/~jimbaker/juju/relation-ids-whitespace-separated/+merge/103387
+Author: Jim Baker <jim.baker@canonical.com>
+Bug: http://pad.lv/988065
+Description:
+  merge relation-ids-whitespace-separated [r=hazmat][f=988065]
+
+  [trivial] Default output format of relation-ids now uses newline to
+  separate (so like relation-list), instead of defaulting to json.
+
+=== modified file 'juju/hooks/commands.py'
+--- old/juju/hooks/commands.py	2012-04-10 16:42:18 +0000
++++ new/juju/hooks/commands.py	2012-04-24 21:47:40 +0000
+@@ -117,6 +117,10 @@
+             self.options.client_id, self.options.relation_name)
+         returnValue(result)
+ 
++    def format_smart(self, result, stream):
++        for ident in result:
++            print >>stream, ident
++
+ 
+ def relation_ids():
+     """Entry point for relation-set."""
+
+=== modified file 'juju/hooks/tests/test_invoker.py'
+--- old/juju/hooks/tests/test_invoker.py	2012-04-10 20:16:14 +0000
++++ new/juju/hooks/tests/test_invoker.py	2012-04-25 00:20:26 +0000
+@@ -1102,7 +1102,33 @@
+ 
+     @defer.inlineCallbacks
+     def test_relation_ids(self):
+-        """Verify `relation-ids` command returns corresponding ids."""
++        """Verify `relation-ids` command returns ids separated by newlines."""
++        yield self.add_a_blog("wordpress2")
++        hook_log = self.capture_logging("hook")
++
++        # Invoker will be in the context of the mysql/0 service unit
++        exe = yield self.ua.get_invoker(
++            "db:0", "add", "mysql/0", self.relation,
++            client_id="client_id")
++
++        # Then verify the hook lists the relation ids corresponding to
++        # the relation name `db`
++        hook = self.create_hook("relation-ids", "db")
++        result = yield exe(hook)
++        self.assertEqual(result, 0)
++        yield exe.ended
++        # Smart formtting outputs one id per line
++        self.assertEqual(
++            hook_log.getvalue(), "db:0\ndb:1\n\n")
++        # But newlines are just whitespace to the shell or to Python,
++        # so they can be split accordingly, adhering to the letter of
++        # the spec
++        self.assertEqual(
++            hook_log.getvalue().split(), ["db:0", "db:1"])
++
++    @defer.inlineCallbacks
++    def test_relation_ids_json_format(self):
++        """Verify `relation-ids --format=json` command returns ids in json."""
+         yield self.add_a_blog("wordpress2")
+         yield self.add_db_admin_tool("admin")
+         hook_log = self.capture_logging("hook")
+

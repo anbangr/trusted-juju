@@ -1,0 +1,39 @@
+Origin: https://code.launchpad.net/~davidpbritton/juju/dont-proxy-https/+merge/105353
+Author: David Britton <david.britton@canonical.com>
+Bug: http://pad.lv/993034
+Description::
+  [merge] dont-proxy-https, update local provider apt-proxy config to
+  passthrough for https repos. [a=davidpbritton][r=hazmat][f=993034]
+
+=== modified file 'juju/lib/lxc/data/juju-create'
+--- old/juju/lib/lxc/data/juju-create	2012-02-16 01:15:19 +0000
++++ new/juju/lib/lxc/data/juju-create	2012-05-10 16:20:36 +0000
+@@ -9,6 +9,7 @@
+ # significantly. (and useful in repeated development runs)
+     cat <<EOF >> /etc/apt/apt.conf.d/02juju-apt-proxy
+ Acquire::http { Proxy "http://192.168.122.1:3142"; };
++Acquire::https { Proxy "false"; };
+ EOF
+ 
+     chmod a+r /etc/apt/apt.conf.d/02juju-apt-proxy
+@@ -150,4 +151,4 @@
+ # setup_juju ensures sudo is installed which is needed for setup_users
+ setup_users
+ 
+-echo "Container Customization Complete"
+\ No newline at end of file
++echo "Container Customization Complete"
+
+=== modified file 'juju/lib/lxc/tests/test_lxc.py'
+--- old/juju/lib/lxc/tests/test_lxc.py	2012-04-12 18:39:20 +0000
++++ new/juju/lib/lxc/tests/test_lxc.py	2012-05-10 16:20:36 +0000
+@@ -274,6 +274,8 @@
+         apt_proxy = sudo_get("/etc/apt/apt.conf.d/02juju-apt-proxy")
+         self.assertIn('Acquire::http { Proxy "http://192.168.122.1:3142"; };',
+                       apt_proxy)
++        self.assertIn('Acquire::https { Proxy "false"; };',
++                      apt_proxy)
+ 
+         # Verify the container release series.
+         with open(os.path.join(c.rootfs, "etc", "lsb-release")) as fh:
+

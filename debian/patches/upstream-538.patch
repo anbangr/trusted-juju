@@ -1,0 +1,208 @@
+Origin: https://code.launchpad.net/~hazmat/juju/proposed-support/+merge/107404
+Author: kapil.thangavelu@canonical.com
+Bug: http://pad.lv/926550
+Description:
+  [merge] proposed support, add support for using proposed repository
+  pockets for main and universe as a source for juju if specified via
+  juju-origin: proposed.  [r=clint-fewbar][f=926550]
+
+=== modified file 'juju/lib/lxc/__init__.py'
+--- old/juju/lib/lxc/__init__.py	2012-04-12 18:39:20 +0000
++++ new/juju/lib/lxc/__init__.py	2012-05-22 22:08:15 +0000
+@@ -246,6 +246,7 @@
+             print >>fp, escape("JUJU_CONTAINER_NAME", self.container_name)
+             print >>fp, escape("JUJU_PUBLIC_KEY", self.public_key)
+             print >>fp, escape("JUJU_ORIGIN", self.origin)
++            print >>fp, escape("JUJU_SERIES", self.series)
+             if self.source:
+                 print >>fp, escape("JUJU_SOURCE", self.source)
+ 
+
+=== modified file 'juju/lib/lxc/data/juju-create'
+--- old/juju/lib/lxc/data/juju-create	2012-05-10 16:20:36 +0000
++++ new/juju/lib/lxc/data/juju-create	2012-05-29 15:23:08 +0000
+@@ -99,11 +99,17 @@
+     apt-get install $APT_OPTIONS bzr tmux sudo python-software-properties python-yaml
+ 
+     if [ $JUJU_ORIGIN = "ppa" ]; then
+-        # the echo forces an enter to get around the interactive
++        # The echo forces an enter to get around the interactive
+         # prompt in apt-add-repository
+         echo y | apt-add-repository ppa:juju/pkgs
+         apt-get update
+         apt-get install $APT_OPTIONS juju python-txzookeeper
++    elif [ $JUJU_ORIGIN = "proposed"]; then
++	# Enabled testing of proposed updates
++	echo "deb http://archive.ubuntu.com/ubuntu/ $JUJU_SERIES-proposed main universe" >> /etc/apt/sources.list
++        apt-get update
++        apt-get install $APT_OPTIONS juju python-txzookeeper
++
+     elif [[ $JUJU_ORIGIN = lp:* ]]; then
+         apt-get install $APT_OPTIONS python-txzookeeper python-setuptools
+         mkdir /usr/lib/juju
+
+=== modified file 'juju/providers/common/cloudinit.py'
+--- old/juju/providers/common/cloudinit.py	2012-03-29 01:37:57 +0000
++++ new/juju/providers/common/cloudinit.py	2012-05-29 15:23:08 +0000
+@@ -11,6 +11,7 @@
+ DISTRO = "distro"
+ PPA = "ppa"
+ BRANCH = "branch"
++PROPOSED = "proposed"
+ 
+ 
+ def _branch_install_scripts(branch):
+@@ -23,8 +24,9 @@
+ 
+ def _install_scripts(origin, origin_url):
+     scripts = []
+-    if origin not in (DISTRO, PPA):
++    if origin == BRANCH:
+         scripts.extend(_branch_install_scripts(origin_url))
++
+     scripts.extend([
+         "sudo mkdir -p /var/lib/juju",
+         "sudo mkdir -p /var/log/juju"])
+@@ -69,7 +71,7 @@
+     for line in data.splitlines():
+         stripped = line.lstrip()
+         if stripped:
+-            yield (len(line)-len(stripped), stripped)
++            yield (len(line) - len(stripped), stripped)
+ 
+ 
+ def parse_juju_origin(data):
+@@ -109,7 +111,7 @@
+                 return PPA, None
+             indent, line = next()
+             if indent != first_indent:
+-                break # Going into a different version
++                break  # Going into a different version
+     except StopIteration:
+         pass
+     return DISTRO, None
+@@ -163,7 +165,8 @@
+         self._zookeeper = True
+         self._provision = True
+ 
+-    def set_juju_source(self, branch=None, ppa=False, distro=False):
++    def set_juju_source(
++        self, branch=None, ppa=False, distro=False, proposed=False):
+         """Set the version of juju the machine should run.
+ 
+         :param branch: location from which to check out juju; for example,
+@@ -176,13 +179,16 @@
+         :param bool distro: if True, get the default juju version from the
+             OS distribution.
+ 
++        :param bool proposed: if True, get the proposed juju version
++            from the OS distribution.
++
+         :raises: :exc:`juju.errors.CloudInitError` if more than one option,
+             or fewer than one options, are specified.
+ 
+         Note that you don't need to call this method; the juju source
+         defaults to what is returned by `get_default_origin`.
+         """
+-        if len(filter(None, (branch, ppa, distro))) != 1:
++        if len(filter(None, (branch, ppa, distro, proposed))) != 1:
+             raise CloudInitError("Please specify one source")
+         if branch:
+             self._origin = BRANCH
+@@ -193,6 +199,9 @@
+         elif distro:
+             self._origin = DISTRO
+             self._origin_url = None
++        elif proposed:
++            self._origin = PROPOSED
++            self._origin_url = None
+ 
+     def set_machine_id(self, id):
+         """Specify the juju machine ID.
+@@ -296,11 +305,13 @@
+         if self._zookeeper:
+             packages.extend([
+                 "default-jre-headless", "zookeeper", "zookeeperd"])
+-        if self._origin in (DISTRO, PPA):
++        if self._origin in (DISTRO, PPA, PROPOSED):
+             packages.append("juju")
+         return packages
+ 
+     def _collect_repositories(self):
++        if self._origin == PROPOSED:
++            return ["deb $MIRROR $RELEASE-proposed main universe"]
+         if self._origin != DISTRO:
+             return ["ppa:juju/pkgs"]
+         return []
+
+=== modified file 'juju/providers/common/launch.py'
+--- old/juju/providers/common/launch.py	2012-03-29 01:37:57 +0000
++++ new/juju/providers/common/launch.py	2012-05-22 22:08:15 +0000
+@@ -101,6 +101,8 @@
+                 cloud_init.set_juju_source(branch=origin)
+             elif origin == "ppa":
+                 cloud_init.set_juju_source(ppa=True)
++            elif origin == "proposed":
++                cloud_init.set_juju_source(proposed=True)
+             else:
+                 # Ignore other values, just use the distro for sanity
+                 cloud_init.set_juju_source(distro=True)
+
+=== added file 'juju/providers/common/tests/data/cloud_init_proposed'
+--- old/juju/providers/common/tests/data/cloud_init_proposed	1970-01-01 00:00:00 +0000
++++ new/juju/providers/common/tests/data/cloud_init_proposed	2012-05-29 15:23:08 +0000
+@@ -0,0 +1,37 @@
++#cloud-config
++apt-update: true
++apt-upgrade: true
++apt_sources:
++- {source: 'deb $MIRROR $RELEASE-proposed main universe'}
++machine-data: {juju-provider-type: dummy, juju-zookeeper-hosts: 'cotswold:2181,longleat:2181',
++  machine-id: passport}
++output: {all: '| tee -a /var/log/cloud-init-output.log'}
++packages: [bzr, byobu, tmux, python-setuptools, python-twisted, python-txaws, python-zookeeper, juju]
++runcmd: [sudo mkdir -p /var/lib/juju, sudo mkdir -p
++    /var/log/juju, 'cat >> /etc/init/juju-machine-agent.conf <<EOF
++
++    description "Juju machine agent"
++
++    author "Juju Team <juju@lists.ubuntu.com>"
++
++
++    start on runlevel [2345]
++
++    stop on runlevel [!2345]
++
++    respawn
++
++
++    env JUJU_MACHINE_ID="passport"
++
++    env JUJU_ZOOKEEPER="cotswold:2181,longleat:2181"
++
++
++    exec python -m juju.agents.machine --nodaemon --logfile /var/log/juju/machine-agent.log
++    --session-file /var/run/juju/machine-agent.zksession >> /tmp/juju-machine-agent.output
++    2>&1
++
++    EOF
++
++    ', /sbin/start juju-machine-agent]
++ssh_authorized_keys: [chubb]
+
+=== modified file 'juju/providers/common/tests/test_cloudinit.py'
+--- old/juju/providers/common/tests/test_cloudinit.py	2012-03-29 01:37:57 +0000
++++ new/juju/providers/common/tests/test_cloudinit.py	2012-05-22 22:08:15 +0000
+@@ -116,6 +116,11 @@
+         cloud_init.set_juju_source(distro=True)
+         self.assert_render(cloud_init, "cloud_init_distro")
+ 
++    def test_render_proposed_source(self):
++        cloud_init = self.construct_normal()
++        cloud_init.set_juju_source(proposed=True)
++        self.assert_render(cloud_init, "cloud_init_proposed")
++
+     def test_render_branch_source(self):
+         cloud_init = self.construct_normal()
+         cloud_init.set_juju_source(branch="lp:blah/juju/blah-blah")
+

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -x
+
+juju-log "Joined with $JUJU_REMOTE_UNIT"
+juju-log `relation-list`

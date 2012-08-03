@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+
+REV=$(shell dpkg-parsechangelog | sed -rne 's,^Version: .*[+~]bzr([0-9]+).*,\1,p')
+VER=$(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p')
+
+%:
+	dh $@ --buildsystem=python_distutils --with python2
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	./test
+endif
+
+get-orig-source:
+	bzr export -r $(REV) --root=ensemble=$(VER).orig \
+               juju_$(VER).orig.tar.gz lp:juju
+
+override_dh_auto_clean::
+	rm -f debian/manpages/*.partial
+	rm -f debian/manpages/*.1
+
+override_dh_auto_build:: debian/manpages/juju.1
+
+HELP2MAN=PYTHONPATH=`pwd` help2man -N --version-string $(VER)
+
+debian/manpages/juju.1:
+	$(HELP2MAN) --name "juju service orchestration system admin client" \
+     --include debian/manpages/juju.includes.in bin/juju \
+     > debian/manpages/juju.1.partial
+	$(HELP2MAN) --name "juju bootstrap tool" \
+     --include debian/manpages/juju-admin.in bin/juju-admin \
+     > debian/manpages/juju-admin.1.partial
+	for i in `ls bin|grep -v juju` ; do \
+        $(HELP2MAN) --name "Juju charm API commands" \
+         --include debian/manpages/charm_api.in \
+         bin/$$i > debian/manpages/$$i.1.partial ;\
+         mv debian/manpages/$$i.1.partial debian/manpages/$$i.1 ;\
+    done
+	mv -f debian/manpages/juju-admin.1.partial debian/manpages/juju-admin.1
+	mv -f debian/manpages/juju.1.partial debian/manpages/juju.1

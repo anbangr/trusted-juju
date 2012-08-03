@@ -1,0 +1,10 @@
+description "uninteresting service"
+author "Juju Team <juju@lists.ubuntu.com>"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+respawn
+
+
+
+exec /bin/false >> /tmp/some-name.output 2>&1

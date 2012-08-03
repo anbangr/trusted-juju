@@ -1,0 +1,3 @@
+#!/bin/bash
+juju-log "Starting mysql service"
+service mysql start || service mysql restart

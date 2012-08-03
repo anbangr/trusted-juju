@@ -1,0 +1,4 @@
+[SYNOPSIS]
+This tool is only intended for use by juju's bootstrap sequence. It is not intended for use by administrators.
+[SEE ALSO]
+Please see the full online documentation at http://juju.ubuntu.com/docs

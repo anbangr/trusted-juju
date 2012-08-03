@@ -1,0 +1,7 @@
+disable-failing-zookeeper-test.patch
+upstream-532.patch
+upstream-533.patch
+upstream-534.patch
+upstream-537.patch
+upstream-538.patch
+upstream-541-542.patch

@@ -1,0 +1,33 @@
+Source: juju
+Section: python
+Priority: optional
+XS-Python-Version: >= 2.5
+Maintainer: Juju Developers <juju@lists.ubuntu.com>
+Build-Depends: debhelper (>= 7.0.50~), python, 
+    zookeeper,
+    python-twisted,
+    python-txzookeeper (>= 0.9.5~),
+    python-txaws,
+    python-yaml,
+    python-pydot,
+    python-apt,
+    python-oauth,
+    help2man
+Homepage: https://launchpad.net/juju
+Standards-Version: 3.9.1
+
+Package: juju
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}, python-twisted, python-txzookeeper (>= 0.9.5~), python-txaws, python-yaml, openssh-client, tmux, python-oauth
+Recommends: python-pydot, byobu
+Suggests: apt-cacher-ng, lxc, libvirt-bin, zookeeper
+Provides: ${python:Provides}, ${misc:Depends}
+XB-Python-Version: ${python:Versions}
+Breaks: ensemble
+Replaces: ensemble
+Description: next generation service orchestration system
+ Juju is a next generation service orchestration framework. It has been
+ likened to APT for the cloud. With Juju, different authors are able to
+ create service formulas, called charms, independently, and make those
+ services coordinate their communication and configuration through a
+ simple protocol.

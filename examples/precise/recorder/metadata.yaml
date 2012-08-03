@@ -1,0 +1,9 @@
+name: recorder
+summary: "Subordinate test charm"
+description: |
+    Records which units can see each other to show how subordinates work.
+subordinate: true
+requires:
+    juju-info:
+        interface: juju-info
+        scope: container

@@ -1,0 +1,6 @@
+[SYNOPSIS]
+This command is meant to be run by the automated scripts encapsulated in
+.BR juju (1)
+charms.
+[SEE ALSO]
+Please see the full documentation at http://juju.ubuntu.com/docs

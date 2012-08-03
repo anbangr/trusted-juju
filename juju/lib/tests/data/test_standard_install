@@ -1,0 +1,10 @@
+description "a wretched hive of scum and villainy"
+author "Juju Team <juju@lists.ubuntu.com>"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+respawn
+
+env LIGHTSABER="civilised weapon"
+
+exec /bin/imagination-failure --no-ideas >> /tmp/some-name.output 2>&1

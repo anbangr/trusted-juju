@@ -1,0 +1,5 @@
+#!/bin/bash
+set -x
+
+juju-log "Changed relation with $JUJU_REMOTE_UNIT"
+juju-log `relation-list`
